@@ -21,7 +21,7 @@ public class CanvasGUI extends JFrame {
 		setResizable(false);
 		Rectangle r = getGraphicsConfiguration().getBounds();
 		setLocation(r.x + (r.width - getWidth())/2,
-					r.y + (r.height - getHeight())/2);	
+					r.y + (r.height - getHeight())/2);
 	}
 	
 	public void done() {

@@ -16,7 +16,7 @@ public class Canvas extends JPanel {
 	 * @param h
 	 */
 	public Canvas(int w, int h) {
-		this.img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = img.createGraphics();
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, img.getWidth(), img.getHeight());
@@ -50,7 +50,6 @@ public class Canvas extends JPanel {
 		g.setColor(c);
 		g.fillRect(x, y, brush_size, brush_size);
 		g.dispose();
-	    repaint();
 	}
 	
 	/**
@@ -63,6 +62,6 @@ public class Canvas extends JPanel {
 	    g.drawImage(img, 0, 0, this);
 	}
 	
-	public int getWidth() {return this.img.getWidth();}
-	public int getHeight() {return this.img.getHeight();}
+	public int getWidth() {return img.getWidth();}
+	public int getHeight() {return img.getHeight();}
 }

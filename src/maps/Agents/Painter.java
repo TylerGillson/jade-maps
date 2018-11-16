@@ -116,7 +116,7 @@ public class Painter extends Agent {
 			fe.printStackTrace();
 		}
 		
-		System.out.println(getLocalName() + "ready ...");
+		System.out.println(getLocalName() + "ready ... " + String.valueOf(x) + "," + String.valueOf(y));
 	}
 	
 	/**

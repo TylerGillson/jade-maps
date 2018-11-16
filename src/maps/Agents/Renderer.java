@@ -1,7 +1,6 @@
 package maps.Agents;
 
 import java.awt.Color;
-
 import javax.swing.SwingUtilities;
 
 import jade.core.behaviours.CyclicBehaviour;
@@ -20,7 +19,7 @@ public class Renderer extends GuiAgent {
 	protected void setup() {
 		Object[] args = getArguments();
 		Canvas c = (Canvas) args[0];
-		
+				
 		myGui = new CanvasGUI(this, c);
 		myGui.setVisible(true);
 		
@@ -41,6 +40,7 @@ public class Renderer extends GuiAgent {
 					Color c = Color.decode(data[3]);
 					paintAreaAsync(x, y, bs, c);
 					//myGui.canvas.paintArea(x, y, bs, c);
+					//myGui.canvas.repaint();
 				}
 				else {
 					block();
@@ -80,6 +80,7 @@ public class Renderer extends GuiAgent {
 		Runnable task = new Runnable() {
 			public void run() {
 				myGui.canvas.paintArea(x, y, bs, c);
+				myGui.repaint();
 			}
 		};
 		SwingUtilities.invokeLater(task);

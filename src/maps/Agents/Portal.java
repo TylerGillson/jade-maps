@@ -1,8 +1,6 @@
 package maps.Agents;
 
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.Random;
 
 import jade.core.Profile;
@@ -22,7 +20,6 @@ public class Portal extends GuiAgent {
 	public static final int RESET = 2;
 	
 	private int command = WAIT;
-	private Point orig;
 	private Random rand = new Random();
 	private ContainerController cc;
 	
@@ -74,14 +71,8 @@ public class Portal extends GuiAgent {
 			Object[] args = new Object[] {new Canvas(options[2], options[3])};
 			bootAgent("Renderer", "maps.Agents.Renderer", args);
 			
-			// Determine canvas origin:
-			Rectangle r = myGui.getGraphicsConfiguration().getBounds();
-			orig = new Point();
-			orig.x = r.x + (r.width - options[2])/2;
-			orig.y = r.y + (r.height - options[3])/2;
-			
 			// Init Navigator agent:
-			args = new Object[] {orig, options[2], options[3]};
+			args = new Object[] {options[2], options[3]};
 			bootAgent("Navigator", "maps.Agents.Navigator", args);
 			
 			// Spawn Painter agents:
@@ -132,18 +123,17 @@ public class Portal extends GuiAgent {
 		
 		String p_name;
 		Object[] p_args = new Object[7];
-		System.out.println("Origin: " + orig.toString());
 		
 		for (int i = 0; i < num_painters; i++) {
 			// Generate parameters:
 			p_name = "p" + String.valueOf(i);
-			p_args[0] = orig.x + rand.nextInt(canvas_width);   // painter x coordinate
-			p_args[1] = orig.y - rand.nextInt(canvas_height);  // painter y coordinate
-			p_args[2] = 1 + rand.nextInt(max_speed);		   // painter x velocity
-			p_args[3] = 1 + rand.nextInt(max_speed);		   // painter y velocity
-			p_args[4] = rand.nextInt(max_bargaining_power);    // bargaining power
-			p_args[5] = brush_size;							   // brush size
-			p_args[6] = new Color(rand.nextInt(255),		   // painter colour preference
+			p_args[0] = rand.nextInt(canvas_width);   		// painter x coordinate
+			p_args[1] = rand.nextInt(canvas_height);  		// painter y coordinate
+			p_args[2] = 1 + rand.nextInt(max_speed);		// painter x velocity
+			p_args[3] = 1 + rand.nextInt(max_speed);		// painter y velocity
+			p_args[4] = rand.nextInt(max_bargaining_power); // bargaining power
+			p_args[5] = brush_size;							// brush size
+			p_args[6] = new Color(rand.nextInt(255),		// painter colour preference
 								  rand.nextInt(255),
 								  rand.nextInt(255)); 		 
 			bootAgent(p_name, "maps.Agents.Painter", p_args);  // boot up painter agent
