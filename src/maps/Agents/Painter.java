@@ -12,6 +12,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import maps.Utils.DirectoryHelper;
 
 public class Painter extends Agent {
 	// Position & velocity:
@@ -35,7 +36,7 @@ public class Painter extends Agent {
 		color_preference = (Color) args[6];
 		
 		/**
-		 * Paint surrounding area.
+		 * Tell Renderer to paint surrounding area.
 		 */
 		addBehaviour(new TickerBehaviour(this, 1000) {
 			protected void onTick() {			  
@@ -116,7 +117,7 @@ public class Painter extends Agent {
 			fe.printStackTrace();
 		}
 		
-		System.out.println(getLocalName() + "ready ... " + String.valueOf(x) + "," + String.valueOf(y));
+		System.out.println(getLocalName() + "ready ... " + String.valueOf(x) + "," + String.valueOf(y) + "," + color_preference.toString() );
 	}
 	
 	/**

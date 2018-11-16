@@ -45,7 +45,7 @@ public class Canvas extends JPanel {
 	 * @param c
 	 */
 	public void paintArea(int x, int y, int brush_size, Color c) {
-		System.out.println("Painting at: " + String.valueOf(x) + ", " + String.valueOf(y));
+		//System.out.println("Painting at: " + String.valueOf(x) + ", " + String.valueOf(y));
 		Graphics2D g = img.createGraphics();
 		g.setColor(c);
 		g.fillRect(x, y, brush_size, brush_size);

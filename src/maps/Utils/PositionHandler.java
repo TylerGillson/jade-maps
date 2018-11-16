@@ -1,5 +1,7 @@
 package maps.Utils;
 
+import java.awt.Rectangle;
+
 public class PositionHandler {
 	private int width;
 	private int height;
@@ -51,5 +53,15 @@ public class PositionHandler {
 		
 		if (debug) System.out.println("New:  " + String.valueOf(new_x) + ":" + String.valueOf(new_y));
 		return new_coords;
-	}	
+	}
+	
+	/**	
+	 * Test if two rectangles overlap.
+	 * @param a Rectangle 1
+	 * @param b Rectangle 2
+	 * @return boolean indicator
+	 */
+	public static boolean checkCollision(Rectangle a, Rectangle b) {
+		return a.intersects(b);
+	}
 }

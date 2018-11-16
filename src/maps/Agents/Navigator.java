@@ -4,13 +4,10 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
+import maps.Utils.DirectoryHelper;
 import maps.Utils.PositionHandler;
 
 public class Navigator extends Agent {
@@ -51,7 +48,7 @@ public class Navigator extends Agent {
 		 */
 		addBehaviour(new TickerBehaviour(this, 1000) {
 			protected void onTick() {
-				DFAgentDescription[] painters = getPainters();
+				DFAgentDescription[] painters = DirectoryHelper.getPainters(myAgent);
 				
 				for (DFAgentDescription p : painters) {
 					ACLMessage painter_coords_msg = new ACLMessage(ACLMessage.REQUEST);
@@ -63,25 +60,6 @@ public class Navigator extends Agent {
 		});
 		
 		System.out.println("Navigator ready ...");
-	}
-	
-	/**
-	 * Return an array of all registered painter agents.
-	 */
-	public DFAgentDescription[] getPainters() {
-		DFAgentDescription[] result = null;
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType("PAINTER");
-		template.addServices(sd);
-		
-		try {
-			result = DFService.search(this, template);
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		return result;
 	}
 	
 	protected void takeDown() {

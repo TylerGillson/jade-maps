@@ -124,7 +124,7 @@ public class Portal extends GuiAgent {
 		String p_name;
 		Object[] p_args = new Object[7];
 		
-		for (int i = 0; i < num_painters; i++) {
+		for (int i = 0; i < num_painters; i++) {		
 			// Generate parameters:
 			p_name = "p" + String.valueOf(i);
 			p_args[0] = rand.nextInt(canvas_width);   		// painter x coordinate
