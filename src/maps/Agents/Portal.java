@@ -6,11 +6,13 @@ import java.util.Random;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-import jade.wrapper.AgentController;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.wrapper.ContainerController;
-
+import maps.Program;
 import maps.Utils.Canvas;
 import maps.Utils.PortalGUI;
 
@@ -30,6 +32,24 @@ public class Portal extends GuiAgent {
 		startSimulationContainer();	
 		myGui = new PortalGUI(this);
 		myGui.setVisible(true);
+		
+		/**
+		 * Handle reception of reset simulation request from Renderer.
+		 */
+		addBehaviour(new CyclicBehaviour() {
+			public void action() {
+				MessageTemplate mt = MessageTemplate.MatchProtocol("RESET_SIMULATION");
+				ACLMessage msg = myAgent.receive(mt);
+				
+				if (msg != null) {
+					myGui.resetSimulation();
+				}
+				else {
+					block();
+				}
+			}
+		});
+		
 		System.out.println("Portal ready ...");
 	}
 	
@@ -70,47 +90,36 @@ public class Portal extends GuiAgent {
 			
 			// Init Renderer agent:
 			Object[] args = new Object[] {new Canvas(options[2], options[3])};
-			bootAgent("Renderer", "maps.Agents.Renderer", args);
+			Program.bootAgent(cc, "Renderer", "maps.Agents.Renderer", args);
 			
 			// Init Navigator agent:
 			args = new Object[] {options[2], options[3]};
-			bootAgent("Navigator", "maps.Agents.Navigator", args);
+			Program.bootAgent(cc, "Navigator", "maps.Agents.Navigator", args);
 			
 			// Spawn Painter agents:
 			spawnPainters(options);
 		}
 		else if (command == RESET) {
-			Thread t = new Thread() {
-				public void run() {
-					try {
-						cc.kill();
-						cc = null;
-					}
-					catch (Exception e) {
-						e.printStackTrace();
-					}
-				} 
-			}; 
-			t.start(); 
+			 quitSimulation();
 		}
 	}
 	
 	/**
-	 * Attempt to start a new agent within the current container.
+	 * Quit the current simulation by destroying the simulation agent container.
 	 */
-	public void bootAgent(String name, String class_str, Object[] args) {
-		if (args.length == 7)
-			System.out.println(name + " booting ... " + args[6].toString());
-		
-		try {
-			synchronized (this) {
-				AgentController ac = cc.createNewAgent(name, class_str, args);
-				ac.start();	
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+	public void quitSimulation() {
+		Thread t = new Thread() {
+			public void run() {
+				try {
+					cc.kill();
+					cc = null;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			} 
+		}; 
+		t.start();
 	}
 	
 	/**
@@ -144,7 +153,7 @@ public class Portal extends GuiAgent {
 			p_args[6] = new Color(rand.nextInt(256),  		      // painter colour preference
 								  rand.nextInt(256),
 								  rand.nextInt(256)); 		 
-			bootAgent(p_name, "maps.Agents.Painter", p_args);     // boot up painter agent
+			Program.bootAgent(cc, p_name, "maps.Agents.Painter", p_args);  // boot up painter agent
 		}
 	}
 }

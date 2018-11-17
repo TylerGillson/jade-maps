@@ -73,8 +73,8 @@ public class Painter extends Agent {
 					String[] data = msg.getContent().split(":");
 					// If other Painter has a higher bargaining power, adopt its preferences:
 					if (Integer.parseInt(data[2]) > bargaining_power) {
-						vx = Integer.parseInt(data[0]);
-						vy = Integer.parseInt(data[1]);
+						//vx = Integer.parseInt(data[0]);
+						//vy = Integer.parseInt(data[1]);
 						colour_preference = Color.decode(data[3]);
 						System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
 					}
@@ -108,8 +108,8 @@ public class Painter extends Agent {
 				if (msg != null) {
 					// Adopt other Painter's preferences:
 					String[] data = msg.getContent().split(":");
-					vx = Integer.parseInt(data[0]);
-					vy = Integer.parseInt(data[1]);
+					//vx = Integer.parseInt(data[0]);
+					//vy = Integer.parseInt(data[1]);
 					colour_preference = Color.decode(data[3]);
 					System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
 				}

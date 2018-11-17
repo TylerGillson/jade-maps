@@ -96,14 +96,21 @@ public class PortalGUI extends JFrame implements ActionListener {
 			}
 		}
 		else if (ae.getSource() == reset) {
-			if (status == RUNNING) {
-				status = NOT_STARTED;
-				clearFields();
-				
-				GuiEvent ge = new GuiEvent(this, Portal.RESET);
-				myAgent.postGuiEvent(ge);
-			}
+			resetSimulation();
 		}
+	}
+	
+	/**
+	 * Reset the currently running simulation.
+	 */
+	public void resetSimulation() {
+		if (status == RUNNING) {
+			status = NOT_STARTED;
+			clearFields();
+			
+			GuiEvent ge = new GuiEvent(this, Portal.RESET);
+			myAgent.postGuiEvent(ge);
+		}	
 	}
    
 	/**

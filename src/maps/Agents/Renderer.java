@@ -7,6 +7,7 @@ import java.util.Iterator;
 
 import javax.swing.SwingUtilities;
 
+import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.gui.GuiAgent;
@@ -18,6 +19,8 @@ import maps.Utils.CanvasGUI;
 import maps.Utils.PositionHandler;
 
 public class Renderer extends GuiAgent {
+	public static final int RESET = 0;
+	
 	transient protected CanvasGUI myGui;
 
 	protected void setup() {
@@ -76,9 +79,9 @@ public class Renderer extends GuiAgent {
 		});
 		
 		/**
-		 * Check if the canvas has been entirely filled every minute.
+		 * Check if the canvas has been entirely filled every 10 seconds.
 		 */
-		addBehaviour(new TickerBehaviour(this, 60000) {
+		addBehaviour(new TickerBehaviour(this, 10000) {
 			
 			protected void onTick() {
 				if (myGui.canvas.is_complete()) {
@@ -142,7 +145,20 @@ public class Renderer extends GuiAgent {
 		SwingUtilities.invokeLater(task);
 	}
 	
-	protected void onGuiEvent(GuiEvent ev) {}
+	/**
+	 * Respond to commands issued by CanvasGUI.
+	 */
+	protected void onGuiEvent(GuiEvent ev) {
+		int command = ev.getType();
+		
+		// Ask the Portal agent to quit the simulation:
+		if (command == RESET) {
+			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+			msg.addReceiver(new AID("Portal", AID.ISLOCALNAME));
+			msg.setProtocol("RESET_SIMULATION");
+			this.send(msg);
+		}	
+	}
 	
 	/**
 	 * Internal class for simplifying data serialization.
