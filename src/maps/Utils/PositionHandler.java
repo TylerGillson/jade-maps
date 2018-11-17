@@ -14,7 +14,8 @@ public class PositionHandler {
 	
 	/**
 	 * Given a Painter's current position & velocity, calculate its next position.
-	 * @param args current coordinate String
+	 * 
+	 * @param args	current coordinate String
 	 * @return coordinate String indicating new position
 	 */
 	public String updateCoordinates(String[] args) {
@@ -62,6 +63,7 @@ public class PositionHandler {
 	
 	/**	
 	 * Test if two rectangles overlap.
+	 * 
 	 * @param a Rectangle 1
 	 * @param b Rectangle 2
 	 * @return boolean indicator

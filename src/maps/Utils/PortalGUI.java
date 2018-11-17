@@ -18,7 +18,7 @@ public class PortalGUI extends JFrame implements ActionListener {
 	private Portal myAgent;
     
 	public PortalGUI(Portal portal_agent) {
-		myAgent = portal_agent;  // Reference to class Portal
+		myAgent = portal_agent;
 
 		// Init main panel:
 		setTitle("MAPS Portal");

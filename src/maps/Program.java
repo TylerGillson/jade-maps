@@ -6,6 +6,10 @@ import jade.core.ProfileImpl;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 
+/**
+ * Driver class for MAPS. Boots JADE runtime & Portal agent.
+ * @author tylergillson
+ */
 public class Program {
 	
 	public static void main(String[] args) {
@@ -26,6 +30,11 @@ public class Program {
 	
 	/**
 	 * Initialize a new agent within a specified container.
+	 * 
+	 * @param cc  		 ContainerController of desired container
+	 * @param name	 	 Agent name
+	 * @param class_str  Agent class
+	 * @param args 		 Agent arguments
 	 */
 	public static void bootAgent(ContainerController cc, String name, String class_str, Object[] args) {
 		if (args != null && args.length == 7)

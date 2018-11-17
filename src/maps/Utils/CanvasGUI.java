@@ -9,7 +9,7 @@ import jade.gui.GuiEvent;
 import maps.Agents.Renderer;
 
 public class CanvasGUI extends JFrame {
-	public Canvas canvas;
+	private Canvas canvas;
 	private Renderer myAgent;
 	
 	public CanvasGUI(Renderer renderer_agent, Canvas c) {
@@ -43,4 +43,6 @@ public class CanvasGUI extends JFrame {
 			myAgent.postGuiEvent(ge);
 		}
 	}
+	
+	public Canvas getCanvas() {return canvas;}
 }

@@ -8,22 +8,26 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import maps.Utils.DirectoryHelper;
 
+/**
+ * Each Painter agent interact with the Navigator agent to move around the canvas,
+ * the Renderer agent to submit paint requests, and other Painter agents whenever 
+ * an overlap occurs between their paint areas. 
+ * @author tylergillson
+ *
+ */
 public class Painter extends Agent {
-	// Position & velocity:
-	public int x;
-	public int y;	
-	public int vx;
-	public int vy;
-	
+	private int x;
+	private int y;	
+	private int vx;
+	private int vy;
 	private int bargaining_power;
 	private int brush_size;
 	private Color colour_preference;
-	private boolean debug = true;
+	private boolean debug = false;
 	
 	protected void setup() {
 		Object[] args = getArguments();
@@ -34,6 +38,9 @@ public class Painter extends Agent {
 		bargaining_power = (int) args[4];
 		brush_size = (int) args[5];
 		colour_preference = (Color) args[6];
+		
+		// Register w/ yellow pages service:
+		DirectoryHelper.register("PAINTER", this);		
 		
 		/**
 		 * Handle reception of collision detected message from Renderer.
@@ -193,24 +200,7 @@ public class Painter extends Agent {
 			}
 		});
 		
-		// Register w/ yellow pages service:
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType("PAINTER");
-		sd.setName(getLocalName());
-		
-		DFAgentDescription dfd = new DFAgentDescription();
-		dfd.setName(getAID());
-		dfd.addServices(sd);
-		
-		try {
-			DFService.register(this, dfd);
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		
-		// Print Painter created message:
-		System.out.println(getLocalName() + " ready ... " + colour_preference.toString() );
+		System.out.println(getLocalName() + " ready ... ");
 	}
 	
 	/**
@@ -254,7 +244,7 @@ public class Painter extends Agent {
 		rgb = "#" + rgb.substring(2, rgb.length());
 		return rgb;
 	}
-	
+
 	public void takeDown() {
 		try {
 			DFService.deregister(this);

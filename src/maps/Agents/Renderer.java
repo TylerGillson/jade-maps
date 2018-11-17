@@ -18,14 +18,41 @@ import maps.Utils.Canvas;
 import maps.Utils.CanvasGUI;
 import maps.Utils.PositionHandler;
 
+/**
+ * The Renderer agent is responsible for handling paint requests from each Painter
+ * agent. It also initializes the canvas GUI and responds to its requests.
+ * @author tylergillson
+ *
+ */
 public class Renderer extends GuiAgent {
 	public static final int RESET = 0;
 	
 	transient protected CanvasGUI myGui;
-
+	
+	/**
+	 * Internal class for simplifying data serialization.
+	 * @author tylergillson
+	 */
+	public class PainterData {
+		public int x;
+		public int y;
+		public int bs;
+		public Color c;
+		
+		public PainterData(ACLMessage msg) {
+			String[] data = msg.getContent().split(":");
+			x = Integer.parseInt(data[0]);
+			y = Integer.parseInt(data[1]);
+			bs = Integer.parseInt(data[2]);
+			c = Color.decode(data[3]);
+		}
+	}
+	
 	protected void setup() {
 		Object[] args = getArguments();
 		Canvas c = (Canvas) args[0];
+		
+		// Initialize painting window:
 		myGui = new CanvasGUI(this, c);
 		myGui.setVisible(true);
 		
@@ -47,9 +74,10 @@ public class Renderer extends GuiAgent {
 					else
 						break;
 				}
-			
+				// If there are none, return to idle:
 				if (messages.isEmpty())
 					block();
+				// Otherwise, detect Painter collisions & process requests:
 				else {
 					int len = messages.size();
 					if (len > 1) {
@@ -83,19 +111,21 @@ public class Renderer extends GuiAgent {
 		addBehaviour(new TickerBehaviour(this, 10000) {
 			
 			protected void onTick() {
-				if (myGui.canvas.is_complete()) {
+				if (myGui.getCanvas().is_complete()) {
 					myGui.done();
 				}
 			}
 		});
+		
+		System.out.println("Renderer ready ...");
 	}
 	
 	/**
 	 * Given an array of paint request messages, return each pair of indices whose
 	 * requested paint areas are overlapping.
 	 * 
-	 * @param msgs A list of Agent messages containing paint requests.
-	 * @param len Length of msgs.
+	 * @param msgs	a list of Agent messages containing paint requests
+	 * @param len	length of msgs
 	 * @return An ArrayList of indices from msgs.
 	 */
 	public ArrayList<Integer[]> getPainterCollisions(ArrayList<ACLMessage> msgs, int len) {
@@ -119,25 +149,17 @@ public class Renderer extends GuiAgent {
 		return result;
 	}
 	
-	protected void takeDown() {
-		if (myGui != null) {
-			myGui.setVisible(false);
-			myGui.dispose();
-		}
-		System.out.println(getLocalName() + " is now shutting down.");
-	}
-	
 	/**
 	 * Schedule a task for painting onto the canvas frame.
-	 * @param x
-	 * @param y
-	 * @param bs
-	 * @param c
+	 * @param x  	x coordinate of paint area
+	 * @param y  	y coordinate of paint area
+	 * @param bs	width & height of paint area
+	 * @param c  	colour to paint
 	 */
 	public void paintAreaAsync(int x, int y, int bs, Color c) {
 		Runnable task = new Runnable() {
 			public void run() {
-				myGui.canvas.paintArea(x, y, bs, c);
+				myGui.getCanvas().paintArea(x, y, bs, c);
 				myGui.repaint();
 			}
 		};
@@ -159,22 +181,11 @@ public class Renderer extends GuiAgent {
 		}	
 	}
 	
-	/**
-	 * Internal class for simplifying data serialization.
-	 * @author tylergillson
-	 */
-	public class PainterData {
-		public int x;
-		public int y;
-		public int bs;
-		public Color c;
-		
-		public PainterData(ACLMessage msg) {
-			String[] data = msg.getContent().split(":");
-			x = Integer.parseInt(data[0]);
-			y = Integer.parseInt(data[1]);
-			bs = Integer.parseInt(data[2]);
-			c = Color.decode(data[3]);
+	protected void takeDown() {
+		if (myGui != null) {
+			myGui.setVisible(false);
+			myGui.dispose();
 		}
+		System.out.println(getLocalName() + " is now shutting down.");
 	}
 }

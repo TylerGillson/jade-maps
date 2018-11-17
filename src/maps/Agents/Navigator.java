@@ -10,10 +10,17 @@ import jade.lang.acl.MessageTemplate;
 import maps.Utils.DirectoryHelper;
 import maps.Utils.PositionHandler;
 
+/**
+ * The Navigator agent is responsible for handling the movement of each Painter agent.
+ * @author tylergillson
+ *
+ */
 public class Navigator extends Agent {
 	private PositionHandler ph;
 	
 	protected void setup() {
+		
+		// Initialize movement & collision handler:
 		ph = new PositionHandler(getArguments());
 		
 		/**

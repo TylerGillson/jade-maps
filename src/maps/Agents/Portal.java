@@ -16,6 +16,13 @@ import maps.Program;
 import maps.Utils.Canvas;
 import maps.Utils.PortalGUI;
 
+/**
+ * The Portal agent is responsible for instantiating and managing a simulation environment
+ * which contains some number of Painter agents, a Navigator agent, and a Renderer agent.
+ * It also instantiates the main MAPS GUI, then responds to its requests. 
+ * @author tylergillson
+ *
+ */
 public class Portal extends GuiAgent {
 	public static final int WAIT = -1;
 	public static final int QUIT = 0;
@@ -53,16 +60,8 @@ public class Portal extends GuiAgent {
 		System.out.println("Portal ready ...");
 	}
 	
-	protected void takeDown() {
-		if (myGui != null) {
-			myGui.setVisible(false);
-			myGui.dispose();
-		}
-		System.out.println(getLocalName() + " is now shutting down.");
-	}
-	
 	/**
-	 * Create a new agent container to hold Navigator + Painters.
+	 * Create a new agent container to hold Navigator, Renderer, and Painters.
 	 */
 	public void startSimulationContainer() {
 		Runtime rt = Runtime.instance();
@@ -124,6 +123,7 @@ public class Portal extends GuiAgent {
 	
 	/**
 	 * Initialize a fixed number of new Painter agents with random metrics.
+	 * 
 	 * @param num_painters
 	 * @param max_bargaining_power
 	 * @param brush_size
@@ -153,5 +153,13 @@ public class Portal extends GuiAgent {
 								  rand.nextInt(256));
 			Program.bootAgent(cc, p_name, "maps.Agents.Painter", p_args);  // boot up new Painter agent
 		}
+	}
+	
+	protected void takeDown() {
+		if (myGui != null) {
+			myGui.setVisible(false);
+			myGui.dispose();
+		}
+		System.out.println(getLocalName() + " is now shutting down.");
 	}
 }

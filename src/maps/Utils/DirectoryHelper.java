@@ -26,4 +26,24 @@ public class DirectoryHelper {
 		}
 		return result;
 	}
+	
+	/**
+	 * Register an agent with the yellow pages service.
+	 */
+	public static void register(String service_type, Agent a) {
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(service_type);
+		sd.setName(a.getLocalName());
+		
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(a.getAID());
+		dfd.addServices(sd);
+		
+		try {
+			DFService.register(a, dfd);
+		}
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}	
+	}
 }

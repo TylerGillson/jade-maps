@@ -7,13 +7,13 @@ import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
 public class Canvas extends JPanel {
-	/** Source: https://stackoverflow.com/questions/38108506/animating-a-grid-of-pixels-in-java */
 	private BufferedImage img;
 	
 	/**
 	 * Create a new BufferedImage to draw onto and paint it white.
-	 * @param w
-	 * @param h
+	 * 
+	 * @param w		image width
+	 * @param h		image height
 	 */
 	public Canvas(int w, int h) {
 		img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -24,6 +24,7 @@ public class Canvas extends JPanel {
 	
 	/**
 	 * Check whether all pixels have been coloured.
+	 * 
 	 * @return boolean indicator
 	 */
 	public boolean is_complete() {
@@ -39,10 +40,11 @@ public class Canvas extends JPanel {
 	
 	/**
 	 * Draw a square of a particular colour at a particular location.
-	 * @param x
-	 * @param y
-	 * @param brush_size
-	 * @param c
+	 * 
+	 * @param x				x coordinate of paint area
+	 * @param y				y coordinate of paint area
+	 * @param brush_size	width & height of paint area
+	 * @param c				colour to paint
 	 */
 	public void paintArea(int x, int y, int brush_size, Color c) {
 		//System.out.println("Painting at: " + String.valueOf(x) + ", " + String.valueOf(y));
@@ -54,7 +56,6 @@ public class Canvas extends JPanel {
 	
 	/**
 	 * Override parent method to draw BufferedImage on JFrame.
-	 * @param g
 	 */
 	@Override
 	public void paintComponent(Graphics g){
