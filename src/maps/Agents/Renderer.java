@@ -26,7 +26,6 @@ public class Renderer extends GuiAgent {
 	protected void setup() {
 		Object[] args = getArguments();
 		Canvas c = (Canvas) args[0];
-				
 		myGui = new CanvasGUI(this, c);
 		myGui.setVisible(true);
 		

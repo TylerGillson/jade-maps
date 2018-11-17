@@ -1,5 +1,6 @@
 package maps.Utils;
 
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -17,8 +18,9 @@ public class CanvasGUI extends JFrame {
 		setTitle("Canvas");
 		getContentPane().add(c);
 	  
-		// Configure frame:
-		setSize(c.getWidth(), c.getHeight());
+		// Configure frame, ensuring that content pane dimensions match canvas dimensions:
+		getContentPane().setPreferredSize(new Dimension(c.getWidth(), c.getHeight()));
+		pack();
 		setResizable(false);
 		Rectangle r = getGraphicsConfiguration().getBounds();
 		setLocation(r.x + (r.width - getWidth())/2,
