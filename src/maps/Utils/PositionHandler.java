@@ -22,24 +22,24 @@ public class PositionHandler {
 		int new_y = y + vy;
 		
 		// Handle x-axis boundaries:
-		if (new_x < 0) {
+		if (new_x <= 0) {
 			new_x = Math.abs(new_x);
 			vx = -vx;
 			if (debug) System.out.println("Hit left wall ...");
 		}
-		else if (new_x > width) {
+		else if (new_x >= width) {
 			new_x = width - (new_x - width);
 			vx = -vx;
 			if (debug) System.out.println("Hit right wall ...");
 		}
 		
 		// Handle y-axis boundaries:
-		if (new_y < 0) {
+		if (new_y <= 0) {
 			new_y = Math.abs(new_y);
 			vy = -vy;
 			if (debug) System.out.println("Hit bottom wall ...");
 		}
-		else if (new_y > height) {
+		else if (new_y >= height) {
 			new_y = height - (new_y - height);
 			vy = -vy;
 			if (debug) System.out.println("Hit top wall ...");

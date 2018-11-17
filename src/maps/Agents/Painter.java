@@ -12,7 +12,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import maps.Utils.DirectoryHelper;
 
 public class Painter extends Agent {
 	// Position & velocity:
@@ -23,7 +22,7 @@ public class Painter extends Agent {
 	
 	private int bargaining_power;
 	private int brush_size;
-	private Color color_preference;
+	private Color colour_preference;
 	
 	protected void setup() {
 		Object[] args = getArguments();
@@ -33,22 +32,103 @@ public class Painter extends Agent {
 		vy = (int) args[3];
 		bargaining_power = (int) args[4];
 		brush_size = (int) args[5];
-		color_preference = (Color) args[6];
+		colour_preference = (Color) args[6];
+		
+		/**
+		 * Handle reception of collision detected message from Renderer.
+		 */
+		addBehaviour(new CyclicBehaviour() {
+			public void action() {
+				MessageTemplate mt = MessageTemplate.MatchProtocol("COLLISION_DETECTED");
+				ACLMessage msg = myAgent.receive(mt);
+				
+				if (msg != null) {
+					// Send other Painter current velocity, bargaining_power, and colour:
+					String otherPainterAID = msg.getContent();
+					msg = new ACLMessage(ACLMessage.PROPOSE);
+					msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
+					msg.setProtocol("NEGOTIATION");
+					msg.setConversationId(myAgent.getLocalName());
+					msg.setContent(getCollisionNegotiationString());
+					myAgent.send(msg);
+					System.out.println("NEGOTIATION BEGIN ...");
+				}
+				else {
+					block();
+				}
+			}
+		});
+		
+		/**
+		 * Handle reception of negotiation message from other Painter.
+		 */
+		addBehaviour(new CyclicBehaviour() {
+			public void action() {
+				MessageTemplate mt = MessageTemplate.and(
+						MessageTemplate.MatchProtocol("NEGOTIATION"),
+						MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
+				ACLMessage msg = myAgent.receive(mt);
+				
+				if (msg != null) {
+					String[] data = msg.getContent().split(":");
+					// If other Painter has a higher bargaining power, adopt its preferences:
+					if (Integer.parseInt(data[2]) > bargaining_power) {
+						vx = Integer.parseInt(data[0]);
+						vy = Integer.parseInt(data[1]);
+						colour_preference = Color.decode(data[3]);
+						System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
+					}
+					// Otherwise, tell other Painter to adopt this Painter's preferences:
+					else {
+						String otherPainterAID = msg.getConversationId();
+						msg = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+						msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
+						msg.setProtocol("NEGOTIATION");
+						msg.setContent(getCollisionNegotiationString());
+						myAgent.send(msg);
+						System.out.println("NEGOTIATION REJECTED ...");
+					}
+				}
+				else {
+					block();
+				}
+			}
+		});
+		
+		/**
+		 * Handle reception of failed negotiation message from other Painter.
+		 */
+		addBehaviour(new CyclicBehaviour() {
+			public void action() {
+				MessageTemplate mt = MessageTemplate.and(
+						MessageTemplate.MatchProtocol("NEGOTIATION"),
+						MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
+				ACLMessage msg = myAgent.receive(mt);
+				
+				if (msg != null) {
+					// Adopt other Painter's preferences:
+					String[] data = msg.getContent().split(":");
+					vx = Integer.parseInt(data[0]);
+					vy = Integer.parseInt(data[1]);
+					colour_preference = Color.decode(data[3]);
+					System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
+				}
+				else {
+					block();
+				}
+			}
+		});
 		
 		/**
 		 * Tell Renderer to paint surrounding area.
 		 */
 		addBehaviour(new TickerBehaviour(this, 1000) {
 			protected void onTick() {			  
-				String data = String.valueOf(x) + ':' +
-							  String.valueOf(y) + ':' +
-							  String.valueOf(brush_size) + ':' +
-							  getColourString();
-					
+				// Send Renderer current position, brush size, & colour:
 				ACLMessage paint_msg = new ACLMessage(ACLMessage.REQUEST);
 				paint_msg.addReceiver(new AID("Renderer", AID.ISLOCALNAME));
 				paint_msg.setProtocol("PAINT_AREA");
-				paint_msg.setContent(data);
+				paint_msg.setContent(getRendererString());
 				myAgent.send(paint_msg);
 			}
 		});
@@ -62,16 +142,11 @@ public class Painter extends Agent {
 				ACLMessage msg = myAgent.receive(mt);
 				
 				if (msg != null) {
-					String coords = String.valueOf(x) + ':' +
-									String.valueOf(vx) + ':' +
-									String.valueOf(y) + ':' +
-									String.valueOf(vy);
-					
-					// Send Navigator current coordinates:
+					// Send Navigator current position & velocity:
 					msg = new ACLMessage(ACLMessage.INFORM);
 					msg.addReceiver(new AID("Navigator", AID.ISLOCALNAME));
 					msg.setProtocol("UPDATE_COORDINATES");
-					msg.setContent(coords);
+					msg.setContent(getNavigatorString());
 					myAgent.send(msg);
 				}
 				else {
@@ -116,15 +191,48 @@ public class Painter extends Agent {
 		catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
-		
-		System.out.println(getLocalName() + "ready ... " + String.valueOf(x) + "," + String.valueOf(y) + "," + color_preference.toString() );
+		// Print Painter created message:
+		System.out.println(getLocalName() + " ready ... " + colour_preference.toString() );
+	}
+	
+	/**
+	 * Generate a String containing collision negotiation information for another Painter.
+	 */
+	public String getCollisionNegotiationString() {
+		String s = String.valueOf(vx) + ':' +
+				   String.valueOf(vy) + ':' +
+				   String.valueOf(bargaining_power) + ':' +
+				   getColourString();
+		return s;
+	}
+	
+	/**
+	 * Generate a String containing information for Renderer.
+	 */
+	public String getRendererString() {
+		String s = String.valueOf(x) + ':' +
+				   String.valueOf(y) + ':' +
+				   String.valueOf(brush_size) + ':' +
+				   getColourString();
+		return s;
+	}
+	
+	/**
+	 * Generate a String containing information for Navigator.
+	 */
+	public String getNavigatorString() {
+		String s = String.valueOf(x) + ':' +
+				   String.valueOf(vx) + ':' +
+				   String.valueOf(y) + ':' +
+				   String.valueOf(vy);
+		return s;
 	}
 	
 	/**
 	 * Get a string representation of a Painter's preferred colour.
 	 */
 	public String getColourString() {
-		String rgb = Integer.toHexString(color_preference.getRGB());
+		String rgb = Integer.toHexString(colour_preference.getRGB());
 		rgb = "#" + rgb.substring(2, rgb.length());
 		return rgb;
 	}

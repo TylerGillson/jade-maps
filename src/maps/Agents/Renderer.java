@@ -13,7 +13,6 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import javafx.util.Pair;
 import maps.Utils.Canvas;
 import maps.Utils.CanvasGUI;
 import maps.Utils.PositionHandler;
@@ -46,65 +45,31 @@ public class Renderer extends GuiAgent {
 					else
 						break;
 				}
-				
+			
 				if (messages.isEmpty())
 					block();
 				else {
-					int num_messages = messages.size();
-					if (num_messages > 1) {
-						
-						// Get all pairs:
-						ArrayList<Pair<Integer,Integer>> pairs = new ArrayList<Pair<Integer,Integer>>();
-						for (int i = 0; i < num_messages - 1; i++) {
-							for (int j = i + 1; j < num_messages; j++) {
-								pairs.add(new Pair<Integer,Integer>(i,j));
-							}
+					int len = messages.size();
+					if (len > 1) {
+						// For each pair of painters whose paint areas overlap,
+						// send the AID of the pair's second Painter to the pair's
+						// first Painter so that they may begin negotiating:
+						ArrayList<Integer[]> collisions = getPainterCollisions(messages, len);
+						for (Integer[] p : collisions) {
+							msg = new ACLMessage(ACLMessage.INFORM);
+							msg.addReceiver(messages.get(p[0]).getSender());
+							msg.setProtocol("COLLISION_DETECTED");
+							msg.setContent(messages.get(p[1]).getSender().getLocalName());
+							myAgent.send(msg);	
 						}
-						
-						ArrayList<ACLMessage> to_remove = new ArrayList<ACLMessage>();
-						
-						// Test each pair for paint overlap:
-						for (Pair<Integer,Integer> p : pairs) {
-							ACLMessage msg1 = messages.get(p.getKey());
-							ACLMessage msg2 = messages.get(p.getValue());
-							
-							int x1, x2, y1, y2, w1, w2, h1, h2;
-							String[] data1 = msg1.getContent().split(":");
-							String[] data2 = msg2.getContent().split(":");
-							
-							x1 = Integer.parseInt(data1[0]);
-							y1 = Integer.parseInt(data1[1]);
-							w1 = Integer.parseInt(data1[2]);
-							h1 = w1;
-							
-							x2 = Integer.parseInt(data2[0]);
-							y2 = Integer.parseInt(data2[1]);
-							w2 = Integer.parseInt(data2[2]);
-							h2 = w2;
-							
-							Rectangle r1 = new Rectangle(x1, y1, w1, h1);
-							Rectangle r2 = new Rectangle(x2, y2, w2, h2);
-							
-							if (PositionHandler.checkCollision(r1, r2)) {
-								System.out.println("Paint collision!");
-								to_remove.add(messages.get(p.getKey()));
-								to_remove.add(messages.get(p.getValue()));
-							}
-						}
-						
-						// Remove paint requests from painters w/ overlap:
-						messages.removeAll(to_remove);
 					}
 					
+					// Process each paint request:
 					Iterator<ACLMessage> it = messages.iterator();
 					while (it.hasNext()) {
 						msg = it.next();
-						String[] data = msg.getContent().split(":");
-						int x = Integer.parseInt(data[0]);
-						int y = Integer.parseInt(data[1]);
-						int bs = Integer.parseInt(data[2]);
-						Color c = Color.decode(data[3]);
-						paintAreaAsync(x, y, bs, c);	
+						PainterData d = new PainterData(msg);
+						paintAreaAsync(d.x, d.y, d.bs, d.c);	
 					}
 				}
 			}
@@ -121,6 +86,35 @@ public class Renderer extends GuiAgent {
 				}
 			}
 		});
+	}
+	
+	/**
+	 * Given an array of paint request messages, return each pair of indices whose
+	 * requested paint areas are overlapping.
+	 * 
+	 * @param msgs A list of Agent messages containing paint requests.
+	 * @param len Length of msgs.
+	 * @return An ArrayList of indices from msgs.
+	 */
+	public ArrayList<Integer[]> getPainterCollisions(ArrayList<ACLMessage> msgs, int len) {
+		ArrayList<Integer[]> result = new ArrayList<Integer[]>();
+		// Get all possible message pairings:
+		ArrayList<Integer[]> pairs = new ArrayList<Integer[]>();
+		for (int i = 0; i < len - 1; i++) {
+			for (int j = i + 1; j < len; j++) {
+				pairs.add(new Integer[] {i,j});
+			}
+		}
+		// Test each pair for paint overlap:
+		for (Integer[] p : pairs) {
+			PainterData d1 = new PainterData(msgs.get(p[0]));
+			PainterData d2 = new PainterData(msgs.get(p[1]));
+			Rectangle r1 = new Rectangle(d1.x, d1.y, d1.bs, d1.bs);
+			Rectangle r2 = new Rectangle(d2.x, d2.y, d2.bs, d2.bs);
+			if (PositionHandler.checkCollision(r1, r2))
+				result.add(p);
+		}
+		return result;
 	}
 	
 	protected void takeDown() {
@@ -149,4 +143,23 @@ public class Renderer extends GuiAgent {
 	}
 	
 	protected void onGuiEvent(GuiEvent ev) {}
+	
+	/**
+	 * Internal class for simplifying data serialization.
+	 * @author tylergillson
+	 */
+	public class PainterData {
+		public int x;
+		public int y;
+		public int bs;
+		public Color c;
+		
+		public PainterData(ACLMessage msg) {
+			String[] data = msg.getContent().split(":");
+			x = Integer.parseInt(data[0]);
+			y = Integer.parseInt(data[1]);
+			bs = Integer.parseInt(data[2]);
+			c = Color.decode(data[3]);
+		}
+	}
 }

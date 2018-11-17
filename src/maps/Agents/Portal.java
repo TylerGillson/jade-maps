@@ -10,6 +10,7 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
+
 import maps.Utils.Canvas;
 import maps.Utils.PortalGUI;
 
@@ -98,9 +99,14 @@ public class Portal extends GuiAgent {
 	 * Attempt to start a new agent within the current container.
 	 */
 	public void bootAgent(String name, String class_str, Object[] args) {
+		if (args.length == 7)
+			System.out.println(name + " booting ... " + args[6].toString());
+		
 		try {
-			AgentController ac = cc.createNewAgent(name, class_str, args);
-			ac.start();
+			synchronized (this) {
+				AgentController ac = cc.createNewAgent(name, class_str, args);
+				ac.start();	
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -124,19 +130,21 @@ public class Portal extends GuiAgent {
 		String p_name;
 		Object[] p_args = new Object[7];
 		
-		for (int i = 0; i < num_painters; i++) {		
+		for (int i = 0; i < num_painters; i++) {	
 			// Generate parameters:
+			int vx_sign = rand.nextBoolean() ? 1 : -1;
+			int vy_sign = rand.nextBoolean() ? 1 : -1;
 			p_name = "p" + String.valueOf(i);
-			p_args[0] = rand.nextInt(canvas_width);   		// painter x coordinate
-			p_args[1] = rand.nextInt(canvas_height);  		// painter y coordinate
-			p_args[2] = 1 + rand.nextInt(max_speed);		// painter x velocity
-			p_args[3] = 1 + rand.nextInt(max_speed);		// painter y velocity
-			p_args[4] = rand.nextInt(max_bargaining_power); // bargaining power
-			p_args[5] = brush_size;							// brush size
-			p_args[6] = new Color(rand.nextInt(255),		// painter colour preference
-								  rand.nextInt(255),
-								  rand.nextInt(255)); 		 
-			bootAgent(p_name, "maps.Agents.Painter", p_args);  // boot up painter agent
+			p_args[0] = rand.nextInt(canvas_width);   		   	  // painter x coordinate
+			p_args[1] = rand.nextInt(canvas_height);  		      // painter y coordinate
+			p_args[2] = vx_sign * (1 + rand.nextInt(max_speed));  // painter x velocity
+			p_args[3] = vy_sign + (1 + rand.nextInt(max_speed));  // painter y velocity
+			p_args[4] = rand.nextInt(max_bargaining_power);       // bargaining power
+			p_args[5] = brush_size;		  					      // brush size
+			p_args[6] = new Color(rand.nextInt(256),  		      // painter colour preference
+								  rand.nextInt(256),
+								  rand.nextInt(256)); 		 
+			bootAgent(p_name, "maps.Agents.Painter", p_args);     // boot up painter agent
 		}
 	}
 }
