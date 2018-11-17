@@ -44,9 +44,9 @@ public class Navigator extends Agent {
 		});
 		
 		/**
-		 * Ask Painters to send their coordinates every second.
+		 * Ask Painters to send their coordinates every quarter second.
 		 */
-		addBehaviour(new TickerBehaviour(this, 1000) {
+		addBehaviour(new TickerBehaviour(this, 250) { 
 			protected void onTick() {
 				DFAgentDescription[] painters = DirectoryHelper.getPainters(myAgent);
 				

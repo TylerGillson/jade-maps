@@ -23,7 +23,7 @@ public class Painter extends Agent {
 	private int bargaining_power;
 	private int brush_size;
 	private Color colour_preference;
-	private boolean debug = false;
+	private boolean debug = true;
 	
 	protected void setup() {
 		Object[] args = getArguments();
@@ -74,8 +74,17 @@ public class Painter extends Agent {
 					String[] data = msg.getContent().split(":");
 					int diff = Math.abs(Integer.parseInt(data[1]) - bargaining_power);
 					
-					// If other Painter has a higher bargaining power, shrink & adopt its color:
+					// Prepare generic message:
+					String otherPainterAID = msg.getConversationId();
+					msg = new ACLMessage(ACLMessage.UNKNOWN);
+					msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
+					msg.setProtocol("NEGOTIATION");
+					msg.setContent(getCollisionNegotiationString());
+					
+					// If other Painter has a higher bargaining power, tell it to grow, then shrink & adopt its color:
 					if (Integer.parseInt(data[1]) > bargaining_power) {
+						msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+						myAgent.send(msg);
 						brush_size -= diff;
 						colour_preference = Color.decode(data[2]);
 						if (debug) System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
@@ -83,11 +92,7 @@ public class Painter extends Agent {
 					// Otherwise, grow, then tell other Painter to shrink & adopt this Painter's color:
 					else {
 						brush_size += diff;
-						String otherPainterAID = msg.getConversationId();
-						msg = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-						msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
-						msg.setProtocol("NEGOTIATION");
-						msg.setContent(getCollisionNegotiationString());
+						msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
 						myAgent.send(msg);
 						if (debug) System.out.println("NEGOTIATION REJECTED ...");
 					}
@@ -99,21 +104,31 @@ public class Painter extends Agent {
 		});
 		
 		/**
-		 * Handle reception of failed negotiation message from other Painter.
+		 * Handle reception of negotiation update message from other Painter.
 		 */
 		addBehaviour(new CyclicBehaviour() {
 			public void action() {
 				MessageTemplate mt = MessageTemplate.and(
 						MessageTemplate.MatchProtocol("NEGOTIATION"),
-						MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
+						MessageTemplate.or(
+								MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+								MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)));
+				
 				ACLMessage msg = myAgent.receive(mt);
 				
 				if (msg != null) {
-					// Shrink & adopt other Painter's color:
 					String[] data = msg.getContent().split(":");
-					brush_size -= (Integer.parseInt(data[0]) - bargaining_power);
-					colour_preference = Color.decode(data[2]);
-					if (debug) System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
+					
+					if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+						// Grow:
+						brush_size += (bargaining_power - Integer.parseInt(data[1]));
+					}
+					else {
+						// Shrink & adopt other Painter's color:
+						brush_size -= (Integer.parseInt(data[0]) - bargaining_power);
+						colour_preference = Color.decode(data[2]);
+						if (debug) System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
+					}
 				}
 				else {
 					block();
@@ -122,9 +137,9 @@ public class Painter extends Agent {
 		});
 		
 		/**
-		 * Tell Renderer to paint surrounding area.
+		 * Tell Renderer to paint surrounding area every quarter second.
 		 */
-		addBehaviour(new TickerBehaviour(this, 1000) {
+		addBehaviour(new TickerBehaviour(this, 250) {
 			protected void onTick() {			  
 				// Send Renderer current position, brush size, & colour:
 				ACLMessage paint_msg = new ACLMessage(ACLMessage.REQUEST);
@@ -193,6 +208,7 @@ public class Painter extends Agent {
 		catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
+		
 		// Print Painter created message:
 		System.out.println(getLocalName() + " ready ... " + colour_preference.toString() );
 	}
@@ -203,7 +219,7 @@ public class Painter extends Agent {
 	public String getCollisionNegotiationString() {
 		String s = String.valueOf(brush_size) + ':' +
 				   String.valueOf(bargaining_power) + ':' +
-				   getColourString();
+				   getColourString(colour_preference);
 		return s;
 	}
 	
@@ -214,7 +230,7 @@ public class Painter extends Agent {
 		String s = String.valueOf(x) + ':' +
 				   String.valueOf(y) + ':' +
 				   String.valueOf(brush_size) + ':' +
-				   getColourString();
+				   getColourString(colour_preference);
 		return s;
 	}
 	
@@ -231,10 +247,10 @@ public class Painter extends Agent {
 	}
 	
 	/**
-	 * Get a string representation of a Painter's preferred colour.
+	 * Get a string representation of a Painter's colour.
 	 */
-	public String getColourString() {
-		String rgb = Integer.toHexString(colour_preference.getRGB());
+	public String getColourString(Color c) {
+		String rgb = Integer.toHexString(c.getRGB());
 		rgb = "#" + rgb.substring(2, rgb.length());
 		return rgb;
 	}
