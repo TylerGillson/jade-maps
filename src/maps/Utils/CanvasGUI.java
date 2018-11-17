@@ -30,7 +30,7 @@ public class CanvasGUI extends JFrame {
 	 */
 	public void done() {
 		int input = JOptionPane.showOptionDialog(null,
-			"Press Ok to Reset, or Cancel to continue.",
+			"Press OK to Reset, or Cancel to continue.",
 			"Painting Complete!",
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.INFORMATION_MESSAGE, null, null, null);

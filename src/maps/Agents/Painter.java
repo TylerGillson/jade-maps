@@ -23,6 +23,7 @@ public class Painter extends Agent {
 	private int bargaining_power;
 	private int brush_size;
 	private Color colour_preference;
+	private boolean debug = false;
 	
 	protected void setup() {
 		Object[] args = getArguments();
@@ -51,7 +52,7 @@ public class Painter extends Agent {
 					msg.setConversationId(myAgent.getLocalName());
 					msg.setContent(getCollisionNegotiationString());
 					myAgent.send(msg);
-					System.out.println("NEGOTIATION BEGIN ...");
+					if (debug) System.out.println("NEGOTIATION BEGIN ...");
 				}
 				else {
 					block();
@@ -71,22 +72,24 @@ public class Painter extends Agent {
 				
 				if (msg != null) {
 					String[] data = msg.getContent().split(":");
-					// If other Painter has a higher bargaining power, adopt its preferences:
-					if (Integer.parseInt(data[2]) > bargaining_power) {
-						//vx = Integer.parseInt(data[0]);
-						//vy = Integer.parseInt(data[1]);
-						colour_preference = Color.decode(data[3]);
-						System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
+					int diff = Math.abs(Integer.parseInt(data[1]) - bargaining_power);
+					
+					// If other Painter has a higher bargaining power, shrink & adopt its color:
+					if (Integer.parseInt(data[1]) > bargaining_power) {
+						brush_size -= diff;
+						colour_preference = Color.decode(data[2]);
+						if (debug) System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
 					}
-					// Otherwise, tell other Painter to adopt this Painter's preferences:
+					// Otherwise, grow, then tell other Painter to shrink & adopt this Painter's color:
 					else {
+						brush_size += diff;
 						String otherPainterAID = msg.getConversationId();
 						msg = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
 						msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
 						msg.setProtocol("NEGOTIATION");
 						msg.setContent(getCollisionNegotiationString());
 						myAgent.send(msg);
-						System.out.println("NEGOTIATION REJECTED ...");
+						if (debug) System.out.println("NEGOTIATION REJECTED ...");
 					}
 				}
 				else {
@@ -106,12 +109,11 @@ public class Painter extends Agent {
 				ACLMessage msg = myAgent.receive(mt);
 				
 				if (msg != null) {
-					// Adopt other Painter's preferences:
+					// Shrink & adopt other Painter's color:
 					String[] data = msg.getContent().split(":");
-					//vx = Integer.parseInt(data[0]);
-					//vy = Integer.parseInt(data[1]);
-					colour_preference = Color.decode(data[3]);
-					System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
+					brush_size -= (Integer.parseInt(data[0]) - bargaining_power);
+					colour_preference = Color.decode(data[2]);
+					if (debug) System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
 				}
 				else {
 					block();
@@ -199,8 +201,7 @@ public class Painter extends Agent {
 	 * Generate a String containing collision negotiation information for another Painter.
 	 */
 	public String getCollisionNegotiationString() {
-		String s = String.valueOf(vx) + ':' +
-				   String.valueOf(vy) + ':' +
+		String s = String.valueOf(brush_size) + ':' +
 				   String.valueOf(bargaining_power) + ':' +
 				   getColourString();
 		return s;
@@ -224,7 +225,8 @@ public class Painter extends Agent {
 		String s = String.valueOf(x) + ':' +
 				   String.valueOf(vx) + ':' +
 				   String.valueOf(y) + ':' +
-				   String.valueOf(vy);
+				   String.valueOf(vy) + ':' +
+				   String.valueOf(brush_size);
 		return s;
 	}
 	

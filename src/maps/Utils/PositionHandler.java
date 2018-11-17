@@ -12,37 +12,44 @@ public class PositionHandler {
 		height = (int) args[1];;
 	}
 	
+	/**
+	 * Given a Painter's current position & velocity, calculate its next position.
+	 * @param args current coordinate String
+	 * @return coordinate String indicating new position
+	 */
 	public String updateCoordinates(String[] args) {
 		int x = Integer.parseInt(args[0]);
 		int vx = Integer.parseInt(args[1]);
 		int y = Integer.parseInt(args[2]);
 		int vy = Integer.parseInt(args[3]);
+		int bs = Integer.parseInt(args[4]);
 		
+		// Calculate next position:
 		int new_x = x + vx;
 		int new_y = y + vy;
 		
 		// Handle x-axis boundaries:
 		if (new_x < 0) {
-			new_x = 0; //Math.abs(new_x);
+			new_x = 0;
 			vx = -vx;
 			if (debug) System.out.println("Hit left wall ...");
 		}
-		else if (new_x >= width) {
-			new_x = width; //width - (new_x - width);
+		else if (new_x + bs > width) {
+			new_x = width - bs;
 			vx = -vx;
 			if (debug) System.out.println("Hit right wall ...");
 		}
 		
 		// Handle y-axis boundaries:
-		if (new_y <= 0) {
-			new_y = 0; //Math.abs(new_y);
-			vy = -vy;
-			if (debug) System.out.println("Hit bottom wall ...");
-		}
-		else if (new_y >= height) {
-			new_y = height; //height - (new_y - height);
+		if (new_y < 0) {
+			new_y = 0;
 			vy = -vy;
 			if (debug) System.out.println("Hit top wall ...");
+		}
+		else if (new_y + bs > height) {
+			new_y = height - bs;
+			vy = -vy;
+			if (debug) System.out.println("Hit bottom wall ...");
 		}
 		
 		// Build updated coordinates string:
@@ -50,8 +57,6 @@ public class PositionHandler {
 		new_coords += String.valueOf(vx) + ":";
 		new_coords += String.valueOf(new_y) + ":";
 		new_coords += String.valueOf(vy);
-		
-		if (debug) System.out.println("New:  " + String.valueOf(new_x) + ":" + String.valueOf(new_y));
 		return new_coords;
 	}
 	
