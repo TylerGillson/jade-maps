@@ -14,8 +14,9 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import maps.GUIs.CanvasGUI;
 import maps.Utils.Canvas;
-import maps.Utils.CanvasGUI;
 import maps.Utils.PositionHandler;
 
 /**

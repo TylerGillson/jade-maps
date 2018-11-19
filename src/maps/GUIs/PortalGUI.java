@@ -1,4 +1,4 @@
-package maps.Utils;
+package maps.GUIs;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -66,7 +66,7 @@ public class PortalGUI extends JFrame implements ActionListener {
 		quit.addActionListener(this);
 		base.add(footer, BorderLayout.PAGE_END);
   
-		// Exit listener:
+		// Add exit listener:
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				shutDown();
@@ -76,6 +76,7 @@ public class PortalGUI extends JFrame implements ActionListener {
 		// Configure main panel:
 		setSize(470, 350);
 		setResizable(false);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		Rectangle r = getGraphicsConfiguration().getBounds();
 		setLocation(r.x + (r.width - getWidth())/2,
                   	r.y + (r.height - getHeight())/2);

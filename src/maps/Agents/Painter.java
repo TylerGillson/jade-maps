@@ -13,9 +13,14 @@ import jade.lang.acl.MessageTemplate;
 import maps.Utils.DirectoryHelper;
 
 /**
- * Each Painter agent interact with the Navigator agent to move around the canvas,
+ * Each Painter agent interacts with the Navigator agent to move around the canvas,
  * the Renderer agent to submit paint requests, and other Painter agents whenever 
- * an overlap occurs between their paint areas. 
+ * an overlap occurs between their paint areas. When two Painters negotiate, the 
+ * winner is determined based on the values of their "bargaining power" attributes.
+ * The losing Painter adopts the winning Painter's colour, shrinks its brush size by
+ * the difference between their bargaining powers, and increases its own bargaining
+ * power by that same difference. In that way, losing Painters are "incentivized" to
+ * win future negotiations and preserve their current colour.
  * @author tylergillson
  *
  */
@@ -93,6 +98,7 @@ public class Painter extends Agent {
 						msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 						myAgent.send(msg);
 						brush_size -= diff;
+						bargaining_power += diff;
 						colour_preference = Color.decode(data[2]);
 						if (debug) System.out.println("P2 LOST, ADOPTING P1's PREFERENCES");
 					}
@@ -132,7 +138,9 @@ public class Painter extends Agent {
 					}
 					else {
 						// Shrink & adopt other Painter's color:
-						brush_size -= (Integer.parseInt(data[0]) - bargaining_power);
+						int diff = (Integer.parseInt(data[0]) - bargaining_power);
+						brush_size -= diff;
+						bargaining_power -= diff;
 						colour_preference = Color.decode(data[2]);
 						if (debug) System.out.println("P1 LOST, ADOPTING P2's PREFERENCES");
 					}

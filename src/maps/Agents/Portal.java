@@ -13,8 +13,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.ContainerController;
 import maps.Program;
+import maps.GUIs.PortalGUI;
 import maps.Utils.Canvas;
-import maps.Utils.PortalGUI;
 
 /**
  * The Portal agent is responsible for instantiating and managing a simulation environment
