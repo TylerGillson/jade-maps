@@ -1,6 +1,7 @@
 package maps.Agents;
 
 import java.awt.Color;
+import java.util.Random;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -32,6 +33,7 @@ public class Painter extends Agent {
 	private int bargaining_power;
 	private int brush_size;
 	private Color colour_preference;
+	private Random r;
 	private boolean debug = false;
 	
 	protected void setup() {
@@ -43,6 +45,7 @@ public class Painter extends Agent {
 		bargaining_power = (int) args[4];
 		brush_size = (int) args[5];
 		colour_preference = (Color) args[6];
+		r = new Random();
 		
 		// Register w/ yellow pages service:
 		DirectoryHelper.register("PAINTER", this);		
@@ -84,7 +87,10 @@ public class Painter extends Agent {
 				
 				if (msg != null) {
 					String[] data = msg.getContent().split(":");
+					
+					// Determine difference in bargaining powers:
 					int diff = Math.abs(Integer.parseInt(data[1]) - bargaining_power);
+					if (diff == 0) {diff = r.nextInt((bargaining_power > 0) ? bargaining_power : 1);}
 					
 					// Prepare generic message:
 					String otherPainterAID = msg.getConversationId();
@@ -92,6 +98,7 @@ public class Painter extends Agent {
 					msg.addReceiver(new AID(otherPainterAID, AID.ISLOCALNAME));
 					msg.setProtocol("NEGOTIATION");
 					msg.setContent(getCollisionNegotiationString());
+					msg.setConversationId(String.valueOf(diff));  // light abuse of JADE's communication system ...
 					
 					// If other Painter has a higher bargaining power, tell it to grow, then shrink & adopt its color:
 					if (Integer.parseInt(data[1]) > bargaining_power) {
@@ -126,19 +133,18 @@ public class Painter extends Agent {
 						MessageTemplate.or(
 								MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
 								MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)));
-				
 				ACLMessage msg = myAgent.receive(mt);
 				
 				if (msg != null) {
 					String[] data = msg.getContent().split(":");
+					int diff = Integer.parseInt(msg.getConversationId());
 					
+					// Grow if other Painter accepted:
 					if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-						// Grow:
-						brush_size += (bargaining_power - Integer.parseInt(data[1]));
+						brush_size += diff;
 					}
+					// Otherwise, shrink & adopt other Painter's color:
 					else {
-						// Shrink & adopt other Painter's color:
-						int diff = (Integer.parseInt(data[0]) - bargaining_power);
 						brush_size -= diff;
 						bargaining_power -= diff;
 						colour_preference = Color.decode(data[2]);
